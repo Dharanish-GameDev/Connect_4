@@ -1,97 +1,175 @@
-﻿using Photon.Pun;
+﻿using System.Collections;
+using Photon.Pun;
 using UnityEngine;
 
 public class Connect4Piece : MonoBehaviourPun
 {
     [Header("Drop Settings")]
-    public float speed = 12f;
+    public float speed = 1200f; // UI units/sec (anchoredPosition units)
+    [SerializeField] private float dropStartPadding = 120f; // same as Connect5 (+120)
 
     private RectTransform rectTransform;
+
+    private Vector2 targetPosition;
+    private bool hasTarget;
+
+    // InstantiationData
     private float xDest;
     private float yDest;
-    private bool hasTarget;
-    private Vector2 targetPosition;
-    private Vector2 startPosition;
+    private int parentViewID;      // optional, used for safe parenting
+    private int columnIndex = -1;  // used for column highlight clearing
 
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
-        
-        // Parent to pieces container
+
+        // Read instantiation data first
+        ReadInstantiationData();
+
+        // Start parenting + positioning after everything exists (GM + parent view)
+        StartCoroutine(SetupRoutine());
+    }
+
+    private void ReadInstantiationData()
+    {
+        object[] data = photonView.InstantiationData;
+
+        // Expected:
+        // [0]=xDest, [1]=yDest, [2]=parentViewID, [3]=columnIndex
+        if (data == null || data.Length < 2)
+        {
+            Debug.LogWarning("[Connect4Piece] Missing InstantiationData.");
+            hasTarget = false;
+            return;
+        }
+
+        xDest = ToFloat(data[0]);
+        yDest = ToFloat(data[1]);
+        targetPosition = new Vector2(xDest, yDest);
+
+        parentViewID = (data.Length >= 3) ? ToInt(data[2]) : 0;
+        columnIndex = (data.Length >= 4) ? ToInt(data[3]) : -1;
+
+        hasTarget = true;
+    }
+
+    private IEnumerator SetupRoutine()
+    {
+        // Wait a few frames for GameManager / Canvas / PhotonViews to exist on clients
+        for (int i = 0; i < 10; i++)
+        {
+            if (TryParentToTarget()) break;
+            yield return null;
+        }
+
+        // Put piece above board (MATCH Connect5 height)
+        if (hasTarget && rectTransform != null)
+        {
+            rectTransform.anchoredPosition = new Vector2(xDest, GetDropStartHeightLikeConnect5());
+            transform.SetAsLastSibling();
+        }
+    }
+
+    private bool TryParentToTarget()
+    {
+        // 1) Best: parentViewID (most reliable across clients)
+        if (parentViewID != 0)
+        {
+            PhotonView parentPV = PhotonView.Find(parentViewID);
+            if (parentPV != null)
+            {
+                RectTransform parentRT = parentPV.GetComponent<RectTransform>();
+                if (parentRT != null)
+                {
+                    transform.SetParent(parentRT, false);
+                    NormalizeLocalUI();
+                    return true;
+                }
+            }
+        }
+
+        // 2) Fallback: GameManager.instance.PiecesParent
         GameManager gm = GameManager.instance;
         if (gm != null && gm.PiecesParent != null)
         {
             transform.SetParent(gm.PiecesParent, false);
-            rectTransform.localScale = Vector3.one;
-            rectTransform.localRotation = Quaternion.identity;
+            NormalizeLocalUI();
+            return true;
         }
-        
-        // Get instantiation data
-        object[] data = photonView.InstantiationData;
-        if (data != null && data.Length >= 2)
-        {
-            xDest = (float)data[0];
-            yDest = (float)data[1];
-            targetPosition = new Vector2(xDest, yDest);
-            
-            // Set start position (above the board)
-            startPosition = new Vector2(xDest, GetDropStartHeight());
-            Debug.Log("Drop Height: " + GetDropStartHeight());
-            rectTransform.anchoredPosition = startPosition;
-            
-            hasTarget = true;
-            transform.SetAsLastSibling();
-        }
-        else
-        {
-            hasTarget = false;
-            Debug.LogWarning("[Connect4Piece] Missing InstantiationData.");
-        }
+
+        return false;
     }
 
-    private float GetDropStartHeight()
+    private void NormalizeLocalUI()
     {
-        // Adjust based on your canvas and board layout
+        if (rectTransform == null) rectTransform = GetComponent<RectTransform>();
+        rectTransform.localScale = Vector3.one;
+        rectTransform.localRotation = Quaternion.identity;
+        rectTransform.anchoredPosition3D = new Vector3(rectTransform.anchoredPosition.x, rectTransform.anchoredPosition.y, 0f);
+    }
+
+    // ✅ Same idea as your Connect5: start from half of the CANVAS height + padding
+    private float GetDropStartHeightLikeConnect5()
+    {
+        // Find the Canvas we are under
         Canvas canvas = GetComponentInParent<Canvas>();
         if (canvas != null)
         {
-            // Start from top of canvas
-            return canvas.pixelRect.height / 2 + 100f;
+            RectTransform canvasRT = canvas.transform as RectTransform;
+            if (canvasRT != null)
+            {
+                return (canvasRT.rect.height * 0.5f) + dropStartPadding;
+            }
+
+            // Fallback if canvasRT missing (rare)
+            return (canvas.pixelRect.height * 0.5f) + dropStartPadding;
         }
-        return 10f; // Default fallback
+
+        // Ultimate fallback
+        RectTransform parent = rectTransform.parent as RectTransform;
+        if (parent != null) return (parent.rect.height * 0.5f) + dropStartPadding;
+
+        return yDest + 600f;
     }
 
     private void Update()
     {
-        if (!hasTarget) return;
+        if (!hasTarget || rectTransform == null) return;
 
-        Vector2 currentPos = rectTransform.anchoredPosition;
         rectTransform.anchoredPosition = Vector2.MoveTowards(
-            currentPos, 
-            targetPosition, 
+            rectTransform.anchoredPosition,
+            targetPosition,
             speed * Time.deltaTime
         );
 
-        // Check if reached destination
-        if (Vector2.Distance(rectTransform.anchoredPosition, targetPosition) < 0.1f)
+        if ((rectTransform.anchoredPosition - targetPosition).sqrMagnitude <= 0.25f) // ~0.5px
         {
             rectTransform.anchoredPosition = targetPosition;
             hasTarget = false;
-            OnDropComplete();
+
+            // Clear column highlight when this piece lands (local)
+            if (columnIndex >= 0 && GameManager.instance != null)
+            {
+                GameManager.instance.ClearColumnHighlightLocal(columnIndex);
+            }
         }
     }
 
-    private void OnDropComplete()
+    private float ToFloat(object obj)
     {
-        // Optional: Trigger any completion events
-        // You could broadcast an RPC here if needed
-        photonView.RPC("RPC_OnDropComplete", RpcTarget.All);
+        if (obj is float f) return f;
+        if (obj is double d) return (float)d;
+        if (obj is int i) return i;
+        if (obj is long l) return l;
+        return 0f;
     }
 
-    [PunRPC]
-    private void RPC_OnDropComplete()
+    private int ToInt(object obj)
     {
-        // All clients execute this when piece lands
-        // Could play sound, trigger effects, etc.
+        if (obj is int i) return i;
+        if (obj is long l) return (int)l;
+        if (obj is float f) return Mathf.RoundToInt(f);
+        if (obj is double d) return Mathf.RoundToInt((float)d);
+        return -1;
     }
 }
