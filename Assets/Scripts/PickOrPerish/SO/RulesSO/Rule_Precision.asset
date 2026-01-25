@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf6d246eefc592c4daea25a5de79ff26, type: 3}
+  m_Name: Rule_Precision
+  m_EditorClassIdentifier: 
+  ruleName: Precision Bonus
+  description: Exact match makes others lose 2 points instead of 1
+  minPlayers: 4
+  maxPlayers: 10
+  roundNumber: 3
+  ruleType: 3
+  multiplier: 0.8
+  affectsTarget: 1
+  affectsPoints: 1
+  enableDuplicatePenalty: 0
+  duplicatePenaltyAmount: 1
+  enablePrecisionBonus: 1
+  precisionBonusAmount: 2
+  isFinalDuelRule: 0
+  ruleIcon: {fileID: 0}
+  ruleColor: {r: 1, g: 1, b: 1, a: 1}

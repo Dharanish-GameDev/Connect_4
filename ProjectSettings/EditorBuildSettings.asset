@@ -20,5 +20,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Connect5.unity
     guid: 8220bbff4d78e3140829c909926538b0
+  - enabled: 1
+    path: Assets/Scenes/PickOrPerish.unity
+    guid: 3896823de4706194d8a093ba0206fdb3
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0

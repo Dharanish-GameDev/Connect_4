@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1330622dc8e04474c8971b9aadb17998, type: 3}
+  m_Name: P3Data
+  m_EditorClassIdentifier: 
+  playerName: Adam
+  playerID: 2
+  playerLevel: 0
+  playerExp: 0
+  coinsValue: 31400
+  playerIcon: {fileID: 21300000, guid: d877daa81d0e72d45a5448f7d6c89d2c, type: 3}

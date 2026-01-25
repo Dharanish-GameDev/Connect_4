@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d407c37968dd3794c8f03abcf7dec562, type: 3}
+  m_Name: Rule_FinalDuel
+  m_EditorClassIdentifier: 
+  ruleName: Final Duel
+  description: '0 vs 100: 100 always wins'
+  minPlayers: 2
+  maxPlayers: 2
+  roundNumber: 1
+  ruleType: 2
+  multiplier: 0.8
+  affectsTarget: 1
+  affectsPoints: 0
+  enableDuplicatePenalty: 0
+  duplicatePenaltyAmount: 1
+  enablePrecisionBonus: 0
+  precisionBonusAmount: 2
+  isFinalDuelRule: 1
+  ruleIcon: {fileID: 0}
+  ruleColor: {r: 1, g: 1, b: 1, a: 1}

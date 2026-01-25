@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f1162c113c37c24a9cb6633e1b74986, type: 3}
+  m_Name: Rule_Duplicate
+  m_EditorClassIdentifier: 
+  ruleName: Duplicate Penalty
+  description: If multiple players choose same number, all lose 1 point
+  minPlayers: 4
+  maxPlayers: 10
+  roundNumber: 2
+  ruleType: 1
+  multiplier: 0.8
+  affectsTarget: 1
+  affectsPoints: 1
+  enableDuplicatePenalty: 1
+  duplicatePenaltyAmount: 1
+  enablePrecisionBonus: 0
+  precisionBonusAmount: 2
+  isFinalDuelRule: 0
+  ruleIcon: {fileID: 0}
+  ruleColor: {r: 1, g: 1, b: 1, a: 1}
